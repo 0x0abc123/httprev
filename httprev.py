@@ -83,7 +83,8 @@ def load_urls_from_xml(xml_file):
                     if service is None:
                         continue
                     service_name = service.get("name")
-                    if service_name.startswith("http"):
+                    product = service.get("product")
+                    if service_name.startswith("http") or product is not None and 'http' in product.lower():
                         scheme = service_name
                         tunnel = service.get("tunnel")
                         if tunnel == "ssl":
@@ -156,6 +157,17 @@ def extract_script_src(s):
     for a in s.find_all('script'):
         link = a.get('src')
         if link is not None and not link.startswith('#') and link != "" and link != "/":
+            links.add(link)
+    return sorted(links)
+
+
+def extract_iframe_src(s):
+    links = set()
+    for a in s.find_all('iframe'):
+        link = a.get('src')
+        if link is not None and not link.startswith('#') and link != "" and link != "/":
+            if len(link) > TXT_MAX_LEN:
+                link = link[:TXT_MAX_LEN]
             links.add(link)
     return sorted(links)
 
@@ -253,6 +265,7 @@ def extract_stuff_from_html(content):
         stuff['a_hrefs'] = extract_a_href(soup)
         stuff['link_hrefs'] = extract_link_href(soup)
         stuff['script_src'] = extract_script_src(soup)
+        stuff['iframe_src'] = extract_iframe_src(soup)
         stuff['metas'] = extract_meta(soup)
         stuff['forms'] = extract_form(soup)
         stuff['comments'] = extract_comment(soup)
