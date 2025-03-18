@@ -210,10 +210,14 @@ def extract_text(s):
     return txt
 
 
+def build_request(url):
+    return urllib.request.Request(url=url, headers={'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36'} method='GET')
+
+
 def fetch_favicon_mmh3_hash(url):
         favicon_url = f"{url}/favicon.ico"
         try:
-            with urllib.request.urlopen(favicon_url, timeout=10) as response:
+            with urllib.request.urlopen(build_request(favicon_url), timeout=10) as response:
                 favicon_data = response.read()
                 hash_value = mmh3.hash(base64.b64encode(favicon_data))
                 return hash_value
@@ -257,7 +261,8 @@ def fetch_and_analyse_url(url):
     result = {}
     try:
         # important: dont use a context, as it prevents the NoRedirect opener from working
-        response = urllib.request.urlopen(url, timeout=10)
+
+        response = urllib.request.urlopen(build_request(url), timeout=10)
         headers = {}
         for hdr,val in response.getheaders():
             headers[hdr] = val
