@@ -288,7 +288,7 @@ def fetch_and_analyse_url(url):
     parsed_url = urlparse(url)
     result['url_scheme'] = parsed_url.scheme
     result['url_host'] = parsed_url.hostname
-    result['url_port'] = parsed_url.port if parsed_url.port else ('80' if parsed_url.scheme == 'http' else '443')
+    result['url_port'] = str(parsed_url.port) if parsed_url.port else ('80' if parsed_url.scheme == 'http' else '443')
     favhash = fetch_favicon_mmh3_hash(f'{result["url_scheme"]}://{result["url_host"]}:{result["url_port"]}')
     if favhash is not None:
         result['favicon_mmh3'] = favhash
