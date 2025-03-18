@@ -204,10 +204,21 @@ def extract_comment(s):
 
 def extract_text(s):
     body = s.find('body')
-    txtraw = ' '.join(body.strings)
-    txt = re.sub(r"\s+", " ", txtraw)
-    if txt is not None and txt != "":
-        txt = txt if len(txt) < TXT_MAX_LEN else txt[:TXT_MAX_LEN]
+    txtraw = ''
+    txt = ''
+    try:
+        if body is None:
+            for htmlelem in s.find_all('html'):
+                txtraw = ' '.join(htmlelem.strings)
+            for scriptelem in s.find_all('script'):
+                txtraw += ' '.join(scriptelem.strings)
+        else:
+            txtraw = ' '.join(body.strings)
+        txt = re.sub(r"\s+", " ", txtraw)
+        if txt is not None and txt != "":
+            txt = txt if len(txt) < TXT_MAX_LEN else txt[:TXT_MAX_LEN]
+    except:
+        pass
     return txt
 
 
