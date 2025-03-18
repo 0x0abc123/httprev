@@ -88,7 +88,7 @@ def load_urls_from_xml(xml_file):
                         tunnel = service.get("tunnel")
                         if tunnel == "ssl":
                             scheme = "https"
-                        if scheme != "http" or scheme != "https":
+                        if scheme not in ["http","https"]:
                             scheme = "http"
                         url = f'{scheme}://{hostname}'
                         portnum = port.get("portid")
