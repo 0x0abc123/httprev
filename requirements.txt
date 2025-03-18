@@ -1,0 +1,4 @@
+beautifulsoup4
+lxml
+mmh3
+cryptography
