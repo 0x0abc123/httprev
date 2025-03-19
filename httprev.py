@@ -296,8 +296,15 @@ def fetch_and_analyse_url(url):
         for hdr,val in response.getheaders():
             headers[hdr] = val
 
-        content = response.read().decode('utf-8')
-        result = extract_stuff_from_html(content)
+        response_bytes = response.read()
+        try:
+            content = response_bytes.decode('utf-8')
+            result = extract_stuff_from_html(content)
+        except Exception:
+            # response is possibly binary data and not utf-8
+            truncated_bytes = response_bytes if len(response_bytes) < TXT_MAX_LEN else response_bytes[:TXT_MAX_LEN]
+            result['body_bytes'] = base64.b64encode(truncated_bytes).decode('utf-8')
+
         result['headers'] = headers
         result['statuscode'] = response.status
     except urllib.error.HTTPError as e:
