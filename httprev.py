@@ -105,9 +105,13 @@ def load_urls_from_xml(xml_file):
 
 def parse_cert(der_cert):
     cert = x509.load_der_x509_certificate(der_cert, default_backend())
-    ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
-    # Get the dNSName entries from the SAN extension
-    sans = ext.value.get_values_for_type(x509.DNSName)
+    sans = []
+    try:
+        ext = cert.extensions.get_extension_for_oid(ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
+        # Get the dNSName entries from the SAN extension
+        sans = ext.value.get_values_for_type(x509.DNSName)
+    except:
+        pass
     return {
         "subject":str(cert.subject.rfc4514_string()),
         "issuer":str(cert.issuer.rfc4514_string()),
