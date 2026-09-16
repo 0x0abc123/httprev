@@ -37,7 +37,7 @@ def load_urls_from_file(file_path):
             urls = [line.strip() for line in file.readlines() if line.strip()]
             return urls
     except Exception as e:
-        print(f"Error reading file {file_path}: {e}")
+        print(f"Error reading file {file_path}: {e}", file=sys.stderr)
         return []
 
 
@@ -98,7 +98,7 @@ def load_urls_from_xml(xml_file):
                         urls.append(url)
         return urls
     except Exception as e:
-        print(f"Error reading XML file {xml_file}: {e}")
+        print(f"Error reading XML file {xml_file}: {e}", file=sys.stderr)
         return []
 
 
@@ -135,7 +135,7 @@ def get_https_certificate_info(hostname, portstr="443"):
                 '''
         return parse_cert(cert)
     except Exception as e:
-        print(f'error getting cert: {e}')
+        print(f'error getting cert: {e}', file=sys.stderr)
         return None
 
 def extract_a_href(s):
@@ -250,7 +250,7 @@ def fetch_favicon_mmh3_hash(url):
                 hash_value = mmh3.hash(base64.b64encode(favicon_data))
                 return hash_value
         except Exception as e:
-            print(f"{favicon_url} - Error fetching favicon: {e}")
+            print(f"{favicon_url} - Error fetching favicon: {e}", file=sys.stderr)
             return None
 
 
@@ -281,7 +281,7 @@ def extract_stuff_from_html(content):
         return stuff
 
     except Exception as e:
-        print(str(e))
+        print(str(e), file=sys.stderr)
         return stuff
 
 
@@ -309,12 +309,12 @@ def fetch_and_analyse_url(url):
         result['statuscode'] = response.status
     except urllib.error.HTTPError as e:
         result['statuscode'] = e.code
-        print(f"{url} - HTTP Error {e.code}: {e.reason}")
+        print(f"{url} - HTTP Error {e.code}: {e.reason}", file=sys.stderr)
         try:
             content = e.read().decode('utf-8')
             result = extract_stuff_from_html(content)
         except Exception:
-            print(f"{url} - Could not read error page response body.")
+            print(f"{url} - Could not read error page response body.", file=sys.stderr)
             pass
         result['statuscode'] = e.code
         headers = {}
@@ -323,7 +323,7 @@ def fetch_and_analyse_url(url):
         result['headers'] = headers
 
     except Exception as e:
-        print(f'{url} - Fatal exception, {e}')
+        print(f'{url} - Fatal exception, {e}', file=sys.stderr)
         return result
 
     parsed_url = urlparse(url)
@@ -385,22 +385,26 @@ def main():
     elif args.file_nmapxml:
         urls_to_analyse = load_urls_from_xml(args.file_nmapxml)
     else:
-        print("No valid option provided. Use -h for help.")
+        print("No valid option provided. Use -h for help.", file=sys.stderr)
         sys.exit(1)
 
     outputpath = args.output_dir
-    if outputpath is None or outputpath == '':
-        outputpath = '.'
     outputpath = outputpath.rstrip('/')
 
+    to_stdout = (outputpath == '-' or outputpath == '' or outputpath is None)
+
     for url in urls_to_analyse:
-        print(f'fetching: {url}')
+        print(f'fetching: {url}', file=sys.stderr)
         s = fetch_and_analyse_url(url)
         if s:
-            tmpname1 = re.sub(r"[^0-9a-zA-Z\._-]", "_", url)
-            outfilename = re.sub(r"[_]+", "_", tmpname1)
-            with open(f"{outputpath}/{outfilename}.json", "w") as outf:
-                outf.write(json.dumps(s))
+            serialized = json.dumps(s)
+            if to_stdout:
+                print(serialized)
+            else:
+                tmpname1 = re.sub(r"[^0-9a-zA-Z\._-]", "_", url)
+                outfilename = re.sub(r"[_]+", "_", tmpname1)
+                with open(f"{outputpath}/{outfilename}.json", "w") as outf:
+                    outf.write(serialized)
 
 
 if __name__ == "__main__":
